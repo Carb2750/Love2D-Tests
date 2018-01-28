@@ -1,3 +1,7 @@
+require('ball')
+require('player')
+require('walls')
+
 function love.load()
   love.window.setTitle("Prueba")
   love.window.setMode(1000, 500)
@@ -49,7 +53,11 @@ inicioPelota = love.math.random(0,1)
 print(inicioPelota)
 
 --load Sounds
-paddleHit = love.audio.newSource('playerHit.wav', 'static')
+sounds={
+    ['paddleHit'] = love.audio.newSource('playerHit.wav', 'static'),
+    ['gol'] = love.audio.newSource('gol.wav', 'static')
+}
+
 end
 
 function love.update(dt)
@@ -134,116 +142,25 @@ function love.draw()
   love.graphics.rectangle("fill",muroAbj.comp.body:getX() - width / 2, muroAbj.comp.body:getY() - 2.5, width, 5)
 end
 
-function crearPlayer(positionX)
-  --player Components
-    playerPosWidth = width / positionX
-    playerPosHeight = height / 2
-    player = {}
-    player.paleta = {}
-    player.paleta.body = love.physics.newBody(world, playerPosWidth, playerPosHeight, "dynamic",0)
-    player.paleta.shape = love.physics.newRectangleShape(playersDimensionsWidth, playersDimensionsHeight)
-    --player.paleta.shape = love.physics.newPolygonShape(playerPosWidth -15, playerPosHeight, playerPosWidth + 15, playerPosHeight, playerPosWidth + 15, playerPosHeight + 100, playerPosWidth - 15, playerPosHeight + 100 )
-    player.paleta.fixture = love.physics.newFixture(player.paleta.body, player.paleta.shape, 0)
-    --player.paleta.fixture:setRestitution(0)
-    --print(width)
-    --print(width / 2)
-    --print(height / 2)
-    --print(player.paleta.body:getX())
-    --print(player.paleta.body:getY())
-    return player
-end
-
-function crearMurosVert(positionX,positionY)
-  --Walls Components
-  muros = {}
-  muros.comp = {}
-  muros.comp.body = love.physics.newBody(world, positionX, positionY, "static",0)
-  muros.comp.shape = love.physics.newRectangleShape(5,height)
-  muros.comp.fixture = love.physics.newFixture(muros.comp.body, muros.comp.shape)
-  return muros
-end
-
-function crearMurosHor(positionX, positionY)
-  --Walls Components
-  muros = {}
-  muros.comp = {}
-  muros.comp.body = love.physics.newBody(world, positionX, positionY, "static",0)
-  muros.comp.shape = love.physics.newRectangleShape(width,5)
-  muros.comp.fixture = love.physics.newFixture(muros.comp.body, muros.comp.shape)
-  --muros.comp.fixture:setRestitution(0.9)
-  muros.comp.fixture:setFriction(0)
-  return muros
-end
-
-function love.keypressed(key)
-  if(key == "w") then
-    player1.paleta.body:setLinearVelocity(0,0)
-    player1.paleta.body:setLinearVelocity(0,-180)
-  end
-  if(key == "s") then
-    player1.paleta.body:setLinearVelocity(0,0)
-    player1.paleta.body:setLinearVelocity(0,180)
-  end
-  if(key == "up") then
-    player2.paleta.body:setLinearVelocity(0,0)
-    player2.paleta.body:setLinearVelocity(0, -180)
-  end
-  if(key == "down") then
-    player2.paleta.body:setLinearVelocity(0,0)
-    player2.paleta.body:setLinearVelocity(0, 180)
-  end
-  if(key == "space" and pelota.ball.body:getLinearVelocity() == 0) then
-    if(inicioPelota == 0) then
-      pelota.ball.body:applyLinearImpulse(-80, 0)
-    else
-      pelota.ball.body:applyLinearImpulse(80,0)
-    end
-  end
-end
-
-function love.keyreleased(key)
-  if(key == "w") then
-    player1.paleta.body:setLinearVelocity(0,0)
-  end
-  if(key == "s") then
-    player1.paleta.body:setLinearVelocity(0,0)
-  end
-  if(key == "up") then
-    player2.paleta.body:setLinearVelocity(0,0)
-  end
-  if(key == "down") then
-    player2.paleta.body:setLinearVelocity(0,0)
-  end
-end
-
-function crearPelota()
-  --Ball Components
-    pelota = {}
-    pelota.ball = {}
-    pelota.ball.body = love.physics.newBody(world,width / 2,height / 2,"dynamic",0)
-    pelota.ball.shape = love.physics.newCircleShape(((width - height) * 3) / 100)
-    pelota.ball.fixture = love.physics.newFixture(pelota.ball.body, pelota.ball.shape, 1)
-    pelota.ball.fixture:setRestitution(0.9)
-    return pelota
-end
-
 function beginContact(a,b,col)
   --x,y = coll.getNormal()
 
-    print(a:getUserData())
-    print(b:getUserData())
+    --print(a:getUserData())
+    --print(b:getUserData())
     if(a:getUserData() == "muroIzq" and b:getUserData() == "pelota") then
       --print("GOL")
       pelota.ball.body:destroy()
       inicioPelota = 0
       puntajePlayer2 = puntajePlayer2 + 1
-      print(inicioPelota)
+      sounds['gol']:play()
+      --print(inicioPelota)
     end
     if(a:getUserData() == "muroDer" and b:getUserData() == "pelota") then
       pelota.ball.body:destroy()
       inicioPelota = 1
       puntajePlayer1 = puntajePlayer1 + 1
-      print(inicioPelota)
+      sounds['gol']:play()
+      --print(inicioPelota)
     end
 
     if(a:getUserData() == "player1" and b:getUserData() == "pelota") then
@@ -252,14 +169,14 @@ function beginContact(a,b,col)
       print(actualVelY)
       pelota.ball.body:setLinearVelocity(30,0)
       pelota.ball.body:applyForce(5000,(actualVelY + actualPlayer1VelY) * 10)
-      paddleHit:play()
-      print("yay")
+      sounds['paddleHit']:play()
+      --print("yay")
     end
     if(a:getUserData() == "player2" and b:getUserData() == "pelota") then
       actualVelX, actualVelY = pelota.ball.body:getLinearVelocity()
       actualPlayer2VelX, actualPlayer2VelY = player2.paleta.body:getLinearVelocity()
       pelota.ball.body:setLinearVelocity(-30,0)
       pelota.ball.body:applyForce(-5000,(actualVelY + actualPlayer2VelY) * 10)
-      paddleHit:play()
+      sounds['paddleHit']:play()
     end
 end
