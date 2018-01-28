@@ -47,6 +47,9 @@ muroAbj = crearMurosHor(width / 2, height)
 --beginContact(pelota.ball.fixture, muroDer.comp.fixture)
 inicioPelota = love.math.random(0,1)
 print(inicioPelota)
+
+--load Sounds
+paddleHit = love.audio.newSource('playerHit.wav', 'static')
 end
 
 function love.update(dt)
@@ -249,6 +252,7 @@ function beginContact(a,b,col)
       print(actualVelY)
       pelota.ball.body:setLinearVelocity(30,0)
       pelota.ball.body:applyForce(5000,(actualVelY + actualPlayer1VelY) * 10)
+      paddleHit:play()
       print("yay")
     end
     if(a:getUserData() == "player2" and b:getUserData() == "pelota") then
@@ -256,5 +260,6 @@ function beginContact(a,b,col)
       actualPlayer2VelX, actualPlayer2VelY = player2.paleta.body:getLinearVelocity()
       pelota.ball.body:setLinearVelocity(-30,0)
       pelota.ball.body:applyForce(-5000,(actualVelY + actualPlayer2VelY) * 10)
+      paddleHit:play()
     end
 end
